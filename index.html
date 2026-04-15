@@ -2,48 +2,145 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My TaskForce</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>TaskForce Custom</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    
     <style>
-        /* アプリっぽいデザインにするための設定 */
-        body { font-family: -apple-system, sans-serif; background-color: #f2f2f7; margin: 0; padding: 20px; text-align: center; }
-        .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h1 { color: #1c1c1e; font-size: 24px; }
-        
-        /* ボタンのデザイン */
-        .btn { 
-            display: block; width: 100%; padding: 15px; margin: 10px 0;
-            border: none; border-radius: 12px; font-size: 18px; font-weight: bold;
-            cursor: pointer; text-decoration: none; transition: transform 0.1s;
+        :root {
+            --bg: #f2f2f7;
+            --card: #ffffff;
+            --blue: #007aff;
+            --red: #ff3b30;
+            --green: #34c759;
+            --text: #1c1c1e;
+            --text-gray: #8e8e93;
         }
-        .btn:active { transform: scale(0.98); }
-        
-        .start-btn { background-color: #ff3b30; color: white; } /* ロック開始（赤） */
-        .done-btn { background-color: #34c759; color: white; }  /* 完了・解除（緑） */
-        
-        .status { font-size: 14px; color: #8e8e93; margin-top: 10px; }
+
+        body {
+            font-family: -apple-system, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 40px 20px;
+            color: var(--text);
+        }
+
+        /* アプリ全体のタイトル */
+        .header {
+            text-align: left;
+            margin-bottom: 30px;
+            padding-left: 10px;
+        }
+        .header h1 { font-size: 34px; font-weight: 800; margin: 0; }
+        .header p { color: var(--text-gray); margin: 5px 0 0; }
+
+        /* カードデザイン */
+        .card {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        /* 進捗バー（タスクフォース風） */
+        .progress-container {
+            height: 12px;
+            background: #e5e5ea;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--blue), var(--green));
+            width: 0%; /* JSで動かす */
+            transition: width 0.5s ease;
+        }
+
+        /* ボタンのデザイン */
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 55px;
+            border-radius: 15px;
+            font-size: 17px;
+            font-weight: 600;
+            text-decoration: none;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+        .btn:active { transform: scale(0.96); opacity: 0.8; }
+
+        .btn-start { background: var(--red); color: white; }
+        .btn-done { background: #e9f9eb; color: var(--green); border: 1px solid var(--green); }
+        .btn-secondary { background: var(--blue); color: white; }
+
+        .status-text { font-size: 13px; text-align: center; color: var(--text-gray); }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h1>習慣マネージャー</h1>
-        <p class="status">今の状態：準備完了</p>
+    <div class="header">
+        <h1 id="today-date">My App</h1>
+        <p>今日も目標をクリアしよう</p>
     </div>
 
     <div class="card">
-        <h3>これから集中する</h3>
-        <a href="shortcuts://run-shortcut?name=ロック開始" class="btn start-btn">集中モード ON</a>
+        <span class="card-title">進捗状況</span>
+        <div class="progress-container">
+            <div class="progress-bar" id="bar"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px;">
+            <span id="task-count">完了タスク: 0</span>
+            <span id="percent">0%</span>
+        </div>
     </div>
 
     <div class="card">
-        <h3>タスク完了報告</h3>
-        <a href="shortcuts://run-shortcut?name=ロック解除" class="btn done-btn">ピアノ完了！解除</a>
-        <a href="shortcuts://run-shortcut?name=ロック解除" class="btn done-btn" style="background-color: #007aff;">勉強完了！解除</a>
+        <span class="card-title">コントロール</span>
+        
+        <a href="shortcuts://run-shortcut?name=ロック開始" class="btn btn-start">集中モードを開始</a>
+        
+        <a href="shortcuts://run-shortcut?name=ロック解除" class="btn btn-done" onclick="completeTask()">ピアノを完了 & 解除</a>
+        
+        <a href="shortcuts://run-shortcut?name=ロック解除" class="btn btn-secondary" onclick="completeTask()">勉強を完了 & 解除</a>
     </div>
+
+    <p class="status-text">※解除するとリマインダーが削除され、記録が残ります</p>
 
     <script>
-        // ここに「何回クリアしたか」などの記録機能を後で追加できるよ！
+        // 日付の表示
+        const today = new Date();
+        document.getElementById('today-date').innerText = today.getMonth() + 1 + "月" + today.getDate() + "日";
+
+        // カウント機能（とりあえずブラウザを閉じるまで保持）
+        let completed = localStorage.getItem('taskCount') || 0;
+        updateDisplay();
+
+        function completeTask() {
+            completed++;
+            localStorage.setItem('taskCount', completed);
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            let p = (completed * 20) % 101; // 1回20%ずつ、100%で戻る例
+            document.getElementById('bar').style.width = p + "%";
+            document.getElementById('percent').innerText = p + "%";
+            document.getElementById('task-count').innerText = "完了タスク: " + completed;
+        }
     </script>
 </body>
 </html>
