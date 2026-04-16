@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>TaskForce Custom</title>
+    <title>My TaskForce</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     
     <style>
         :root {
@@ -15,7 +14,6 @@
             --red: #ff3b30;
             --green: #34c759;
             --text: #1c1c1e;
-            --text-gray: #8e8e93;
         }
 
         body {
@@ -23,123 +21,69 @@
             background-color: var(--bg);
             margin: 0;
             padding: 40px 20px;
-            color: var(--text);
         }
 
-        /* アプリ全体のタイトル */
-        .header {
-            text-align: left;
-            margin-bottom: 30px;
-            padding-left: 10px;
-        }
-        .header h1 { font-size: 34px; font-weight: 800; margin: 0; }
-        .header p { color: var(--text-gray); margin: 5px 0 0; }
-
-        /* カードデザイン */
         .card {
             background: var(--card);
             border-radius: 20px;
-            padding: 20px;
+            padding: 24px;
             margin-bottom: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            text-align: center;
         }
 
-        .card-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-gray);
-            text-transform: uppercase;
-            margin-bottom: 15px;
-            display: block;
-        }
+        h1 { font-size: 28px; font-weight: 800; margin-bottom: 20px; }
 
-        /* 進捗バー（タスクフォース風） */
-        .progress-container {
-            height: 12px;
-            background: #e5e5ea;
-            border-radius: 6px;
-            overflow: hidden;
-            margin-bottom: 10px;
-        }
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--blue), var(--green));
-            width: 0%; /* JSで動かす */
-            transition: width 0.5s ease;
-        }
-
-        /* ボタンのデザイン */
         .btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 55px;
-            border-radius: 15px;
-            font-size: 17px;
+            height: 60px;
+            border-radius: 16px;
+            font-size: 18px;
             font-weight: 600;
             text-decoration: none;
-            margin-bottom: 12px;
-            transition: all 0.2s;
+            margin-bottom: 15px;
+            transition: transform 0.1s;
         }
-        .btn:active { transform: scale(0.96); opacity: 0.8; }
+        .btn:active { transform: scale(0.96); }
 
         .btn-start { background: var(--red); color: white; }
-        .btn-done { background: #e9f9eb; color: var(--green); border: 1px solid var(--green); }
-        .btn-secondary { background: var(--blue); color: white; }
-
-        .status-text { font-size: 13px; text-align: center; color: var(--text-gray); }
+        .btn-done { background: var(--green); color: white; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1 id="today-date">My App</h1>
-        <p>今日も目標をクリアしよう</p>
+    <div class="card">
+        <h1 id="date">アプリ</h1>
+        
+        <a href="shortcuts://x-callback-url/run-shortcut?name=ロック開始&x-success=ここに自分のURLを入れる" class="btn btn-start">
+            集中モード開始
+        </a>
+
+        <a href="shortcuts://x-callback-url/run-shortcut?name=ロック解除&x-success=ここに自分のURLを入れる" class="btn btn-done" onclick="completeTask()">
+            タスク完了 & 解除
+        </a>
+
     </div>
 
     <div class="card">
-        <span class="card-title">進捗状況</span>
-        <div class="progress-container">
-            <div class="progress-bar" id="bar"></div>
-        </div>
-        <div style="display: flex; justify-content: space-between; font-size: 12px;">
-            <span id="task-count">完了タスク: 0</span>
-            <span id="percent">0%</span>
-        </div>
+        <p id="status">今日のクリア数: 0</p>
     </div>
-
-    <div class="card">
-        <span class="card-title">コントロール</span>
-        
-        <a href="shortcuts://run-shortcut?name=ロック開始" class="btn btn-start">集中モードを開始</a>
-        
-        <a href="shortcuts://run-shortcut?name=ロック解除" class="btn btn-done" onclick="completeTask()">ピアノを完了 & 解除</a>
-        
-        <a href="shortcuts://run-shortcut?name=ロック解除" class="btn btn-secondary" onclick="completeTask()">勉強を完了 & 解除</a>
-    </div>
-
-    <p class="status-text">※解除するとリマインダーが削除され、記録が残ります</p>
 
     <script>
-        // 日付の表示
-        const today = new Date();
-        document.getElementById('today-date').innerText = today.getMonth() + 1 + "月" + today.getDate() + "日";
+        // 今日の日付を出す
+        const d = new Date();
+        document.getElementById('date').innerText = (d.getMonth()+1) + "月" + d.getDate() + "日";
 
-        // カウント機能（とりあえずブラウザを閉じるまで保持）
-        let completed = localStorage.getItem('taskCount') || 0;
-        updateDisplay();
+        // カウント機能
+        let count = localStorage.getItem('count') || 0;
+        document.getElementById('status').innerText = "今日のクリア数: " + count;
 
         function completeTask() {
-            completed++;
-            localStorage.setItem('taskCount', completed);
-            updateDisplay();
-        }
-
-        function updateDisplay() {
-            let p = (completed * 20) % 101; // 1回20%ずつ、100%で戻る例
-            document.getElementById('bar').style.width = p + "%";
-            document.getElementById('percent').innerText = p + "%";
-            document.getElementById('task-count').innerText = "完了タスク: " + completed;
+            count++;
+            localStorage.setItem('count', count);
+            document.getElementById('status').innerText = "今日のクリア数: " + count;
         }
     </script>
 </body>
