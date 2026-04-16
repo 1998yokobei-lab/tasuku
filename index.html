@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>My TaskForce</title>
+    <title>TaskForce App</title>
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     
     <style>
         :root {
@@ -14,6 +16,7 @@
             --red: #ff3b30;
             --green: #34c759;
             --text: #1c1c1e;
+            --gray: #8e8e93;
         }
 
         body {
@@ -21,7 +24,16 @@
             background-color: var(--bg);
             margin: 0;
             padding: 40px 20px;
+            color: var(--text);
+            -webkit-user-select: none; /* テキスト選択を禁止してアプリ感を出す */
         }
+
+        .header {
+            margin-bottom: 30px;
+            padding-left: 5px;
+        }
+        .header h1 { font-size: 32px; font-weight: 800; margin: 0; }
+        .header p { color: var(--gray); margin-top: 5px; }
 
         .card {
             background: var(--card);
@@ -29,11 +41,18 @@
             padding: 24px;
             margin-bottom: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            text-align: center;
         }
 
-        h1 { font-size: 28px; font-weight: 800; margin-bottom: 20px; }
+        .card-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray);
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
 
+        /* ボタンデザイン */
         .btn {
             display: flex;
             align-items: center;
@@ -44,46 +63,62 @@
             font-weight: 600;
             text-decoration: none;
             margin-bottom: 15px;
-            transition: transform 0.1s;
+            transition: transform 0.1s, opacity 0.1s;
         }
-        .btn:active { transform: scale(0.96); }
+        .btn:active { transform: scale(0.96); opacity: 0.8; }
 
-        .btn-start { background: var(--red); color: white; }
-        .btn-done { background: var(--green); color: white; }
+        .btn-red { background: var(--red); color: white; }
+        .btn-green { background: var(--green); color: white; }
+
+        /* カウンター表示 */
+        .counter-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .count-num { font-size: 24px; font-weight: 700; color: var(--blue); }
     </style>
 </head>
 <body>
 
+    <div class="header">
+        <h1 id="date-display">0月0日</h1>
+        <p>自分だけの最強習慣管理</p>
+    </div>
+
     <div class="card">
-        <h1 id="date">アプリ</h1>
+        <span class="card-label">Control</span>
         
-        <a href="shortcuts://x-callback-url/run-shortcut?name=ロック開始&x-success=&x-success=com.apple.mobilesafari://" class="btn btn-start">
+        <a href="shortcuts://x-callback-url/run-shortcut?name=ロック開始&x-success=webapp://" class="btn btn-red">
             集中モード開始
         </a>
 
-        <a href="shortcuts://x-callback-url/run-shortcut?name=ロック解除&x-success=ここに自分のURLを入れる" class="btn btn-done" onclick="completeTask()">
+        <a href="shortcuts://x-callback-url/run-shortcut?name=ロック解除&x-success=webapp://" class="btn btn-green" onclick="addCount()">
             タスク完了 & 解除
         </a>
-
     </div>
 
     <div class="card">
-        <p id="status">今日のクリア数: 0</p>
+        <span class="card-label">Daily Progress</span>
+        <div class="counter-box">
+            <span>今日のクリア数</span>
+            <span class="count-num" id="count-display">0</span>
+        </div>
     </div>
 
     <script>
-        // 今日の日付を出す
-        const d = new Date();
-        document.getElementById('date').innerText = (d.getMonth()+1) + "月" + d.getDate() + "日";
+        // 日付の更新
+        const now = new Date();
+        document.getElementById('date-display').innerText = (now.getMonth() + 1) + "月" + now.getDate() + "日";
 
-        // カウント機能
-        let count = localStorage.getItem('count') || 0;
-        document.getElementById('status').innerText = "今日のクリア数: " + count;
+        // カウントの読み込みと表示
+        let count = parseInt(localStorage.getItem('myAppCount')) || 0;
+        document.getElementById('count-display').innerText = count;
 
-        function completeTask() {
+        function addCount() {
             count++;
-            localStorage.setItem('count', count);
-            document.getElementById('status').innerText = "今日のクリア数: " + count;
+            localStorage.setItem('myAppCount', count);
+            document.getElementById('count-display').innerText = count;
         }
     </script>
 </body>
