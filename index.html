@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>TaskForce Custom</title>
+    <title>TaskForce Pro</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     
     <style>
@@ -20,36 +20,39 @@
         body { font-family: -apple-system, sans-serif; background-color: var(--bg); margin: 0; padding: 40px 20px; color: var(--text); }
         .card { background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         
-        /* タイマー部分 */
-        .timer-card { background: #1c1c1e; color: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; text-align: center; }
-        .timer-display { font-size: 42px; font-weight: 800; }
+        .timer-card { background: #1c1c1e; color: white; border-radius: 20px; padding: 25px 20px; margin-bottom: 20px; text-align: center; }
+        .timer-display { font-size: 48px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
 
-        /* 設定入力部分 */
-        .settings { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; }
-        input[type="number"] { width: 60px; padding: 8px; border-radius: 8px; border: 1px solid #ddd; font-size: 18px; text-align: center; }
+        /* 時刻設定エリア */
+        .settings { margin-top: 15px; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; }
+        .settings label { display: block; font-size: 12px; margin-bottom: 8px; opacity: 0.8; }
+        input[type="time"] { 
+            background: white; border: none; padding: 10px; border-radius: 10px; 
+            font-size: 20px; font-weight: bold; font-family: inherit; margin-bottom: 10px; width: 120px;
+        }
 
-        .btn { display: flex; align-items: center; justify-content: center; height: 55px; border-radius: 15px; font-size: 17px; font-weight: 600; text-decoration: none; margin-bottom: 12px; transition: 0.1s; }
+        .btn { display: flex; align-items: center; justify-content: center; height: 55px; border-radius: 15px; font-size: 17px; font-weight: 600; text-decoration: none; margin-bottom: 12px; transition: 0.1s; border: none; width: 100%; }
         .btn:active { transform: scale(0.96); }
         .btn-red { background: var(--red); color: white; }
         .btn-green { background: var(--green); color: white; }
-        .btn-save { background: var(--blue); color: white; height: 40px; padding: 0 15px; font-size: 14px; }
+        .btn-save { background: var(--blue); color: white; height: 45px; font-size: 15px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="timer-card">
-        <div style="font-size: 13px; opacity: 0.7;">自動ロックまで</div>
-        <div class="timer-display" id="countdown">--:--:--</div>
+        <div style="font-size: 14px; opacity: 0.7; margin-bottom: 5px;">自動ロックまで</div>
+        <div class="timer-display" id="countdown">00:00:00</div>
         
         <div class="settings">
-            <input type="number" id="targetHourInput" min="0" max="23" placeholder="22">
-            <span>時</span>
-            <button class="btn btn-save" onclick="saveTargetHour()">設定保存</button>
+            <label>ロックされる時間を設定</label>
+            <input type="time" id="targetTimeInput">
+            <button class="btn btn-save" onclick="saveTargetTime()">設定を保存して連動</button>
         </div>
     </div>
 
     <div class="card">
-        <a href="shortcuts://x-callback-url/run-shortcut?name=ロック開始&x-success=webapp://" class="btn btn-red">集中モード開始</a>
+        <a href="shortcuts://x-callback-url/run-shortcut?name=ロック開始&x-success=webapp://" class="btn btn-red">今すぐロック開始</a>
         <a href="shortcuts://x-callback-url/run-shortcut?name=ロック解除&x-success=webapp://" class="btn btn-green" onclick="addCount()">タスク完了 & 解除</a>
     </div>
 
@@ -59,25 +62,30 @@
     </div>
 
     <script>
-        // 保存された時間を読み込む（なければ22時）
-        let targetHour = localStorage.getItem('targetHour') || 22;
-        document.getElementById('targetHourInput').value = targetHour;
+        // 保存された「時:分」を読み込む（なければ22:00）
+        let targetTime = localStorage.getItem('targetTime') || "22:00";
+        document.getElementById('targetTimeInput').value = targetTime;
 
-        function saveTargetHour() {
-            const h = document.getElementById('targetHourInput').value;
-            if (h >= 0 && h <= 23) {
-                targetHour = h;
-                localStorage.setItem('targetHour', h);
-                alert("ロック時間を " + h + " 時に設定したよ！\n※オートメーション側の時間も合わせてね！");
+        function saveTargetTime() {
+            const t = document.getElementById('targetTimeInput').value;
+            if (t) {
+                targetTime = t;
+                localStorage.setItem('targetTime', t);
+                alert("設定完了！\nショートカットのオートメーションも「" + t + "」に変えておいてね！");
             }
         }
 
         function updateTimer() {
             const now = new Date();
+            const [tHour, tMin] = targetTime.split(':');
+            
             let target = new Date();
-            target.setHours(targetHour, 0, 0, 0);
+            target.setHours(parseInt(tHour), parseInt(tMin), 0, 0);
 
-            if (now > target) target.setDate(target.getDate() + 1);
+            // 設定時間を過ぎていたら翌日に設定
+            if (now > target) {
+                target.setDate(target.getDate() + 1);
+            }
 
             const diff = target - now;
             const h = Math.floor(diff / 1000 / 60 / 60);
@@ -91,7 +99,7 @@
         setInterval(updateTimer, 1000);
         updateTimer();
 
-        // カウント機能
+        // クリア数カウント機能
         let count = parseInt(localStorage.getItem('myAppCount')) || 0;
         document.getElementById('count-display').innerText = count;
         function addCount() {
