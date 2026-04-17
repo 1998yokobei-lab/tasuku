@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>TaskForce App</title>
-    
+    <title>TaskForce Pro</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     
@@ -25,15 +24,22 @@
             margin: 0;
             padding: 40px 20px;
             color: var(--text);
-            -webkit-user-select: none; /* テキスト選択を禁止してアプリ感を出す */
         }
 
-        .header {
-            margin-bottom: 30px;
-            padding-left: 5px;
-        }
+        .header { margin-bottom: 25px; }
         .header h1 { font-size: 32px; font-weight: 800; margin: 0; }
-        .header p { color: var(--gray); margin-top: 5px; }
+        
+        /* カウントダウンのカード */
+        .timer-card {
+            background: linear-gradient(135deg, #1c1c1e, #3a3a3c);
+            color: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .timer-display { font-size: 42px; font-weight: 800; font-variant-numeric: tabular-nums; }
+        .timer-label { font-size: 13px; opacity: 0.7; }
 
         .card {
             background: var(--card);
@@ -43,54 +49,30 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
 
-        .card-label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--gray);
-            text-transform: uppercase;
-            margin-bottom: 15px;
-        }
-
-        /* ボタンデザイン */
         .btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 60px;
-            border-radius: 16px;
-            font-size: 18px;
-            font-weight: 600;
-            text-decoration: none;
-            margin-bottom: 15px;
-            transition: transform 0.1s, opacity 0.1s;
+            display: flex; align-items: center; justify-content: center;
+            height: 60px; border-radius: 16px; font-size: 18px; font-weight: 600;
+            text-decoration: none; margin-bottom: 15px; transition: 0.1s;
         }
         .btn:active { transform: scale(0.96); opacity: 0.8; }
-
         .btn-red { background: var(--red); color: white; }
         .btn-green { background: var(--green); color: white; }
-
-        /* カウンター表示 */
-        .counter-box {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .count-num { font-size: 24px; font-weight: 700; color: var(--blue); }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1 id="date-display">0月0日</h1>
-        <p>自分だけの最強習慣管理</p>
+    </div>
+
+    <div class="timer-card">
+        <div class="timer-label">自動ロックまであと</div>
+        <div class="timer-display" id="countdown">--:--:--</div>
     </div>
 
     <div class="card">
-        <span class="card-label">Control</span>
-        
         <a href="shortcuts://x-callback-url/run-shortcut?name=ロック開始&x-success=webapp://" class="btn btn-red">
-            集中モード開始
+            今すぐロック開始
         </a>
 
         <a href="shortcuts://x-callback-url/run-shortcut?name=ロック解除&x-success=webapp://" class="btn btn-green" onclick="addCount()">
@@ -98,20 +80,42 @@
         </a>
     </div>
 
-    <div class="card">
-        <span class="card-label">Daily Progress</span>
-        <div class="counter-box">
-            <span>今日のクリア数</span>
-            <span class="count-num" id="count-display">0</span>
-        </div>
+    <div class="card" style="text-align: center;">
+        <span style="color: var(--gray); font-size: 14px;">今日のクリア数</span>
+        <div style="font-size: 32px; font-weight: 800; color: var(--blue);" id="count-display">0</div>
     </div>
 
     <script>
-        // 日付の更新
-        const now = new Date();
+        // 設定：何時に自動ロックするか（22なら夜10時）
+        const targetHour = 22;
+
+        function updateTimer() {
+            const now = new Date();
+            let target = new Date();
+            target.setHours(targetHour, 0, 0, 0);
+
+            // もし設定時間を過ぎていたら、明日のその時間にセット
+            if (now > target) {
+                target.setDate(target.getDate() + 1);
+            }
+
+            const diff = target - now;
+            const h = Math.floor(diff / 1000 / 60 / 60);
+            const m = Math.floor(diff / 1000 / 60) % 60;
+            const s = Math.floor(diff / 1000) % 60;
+
+            document.getElementById('countdown').innerText = 
+                `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        // 1秒ごとに更新
+        setInterval(updateTimer, 1000);
+        updateTimer();
+
+        // 日付表示
         document.getElementById('date-display').innerText = (now.getMonth() + 1) + "月" + now.getDate() + "日";
 
-        // カウントの読み込みと表示
+        // カウント機能
         let count = parseInt(localStorage.getItem('myAppCount')) || 0;
         document.getElementById('count-display').innerText = count;
 
