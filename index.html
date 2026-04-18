@@ -5,33 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>TaskForce Stadium</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <script>
-        // 君のURLをセットしたよ！
-        const MY_URL = 'https://1998yokobei-lab.github.io/tasuku/'; 
-    </script>
-
     <style>
-        :root {
-            --bg: #001d42;
-            --card: #ffffff;
-            --blue: #007aff;
-            --red: #ff3b30;
-            --green: #34c759;
-            --text: #1c1c1e;
-            --gray: #8e8e93;
-        }
-        body { font-family: -apple-system, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: var(--text); -webkit-user-select: none; }
+        :root { --bg: #001d42; --card: #ffffff; --blue: #007aff; --red: #ff3b30; --green: #34c759; --text: #1c1c1e; }
+        body { font-family: -apple-system, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: var(--text); }
         .streak-badge { background: linear-gradient(45deg, #ff9500, #ff5e3a); color: white; border-radius: 50px; padding: 5px 15px; font-size: 14px; font-weight: 800; display: inline-block; margin-bottom: 10px; }
-        .timer-card { background: rgba(255,255,255,0.1); color: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; text-align: center; backdrop-filter: blur(10px); }
-        .timer-display { font-size: 40px; font-weight: 800; font-variant-numeric: tabular-nums; }
-        .card { background: var(--card); border-radius: 24px; padding: 24px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center; }
-        .btn { display: flex; align-items: center; justify-content: center; height: 65px; border-radius: 18px; font-size: 19px; font-weight: 700; text-decoration: none; margin-bottom: 15px; transition: 0.1s; border: none; width: 100%; }
-        .btn:active { transform: scale(0.94); }
+        .timer-card { background: rgba(255,255,255,0.1); color: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; text-align: center; }
+        .timer-display { font-size: 40px; font-weight: 800; }
+        .card { background: var(--card); border-radius: 24px; padding: 24px; margin-bottom: 20px; text-align: center; }
+        .btn { display: flex; align-items: center; justify-content: center; height: 65px; border-radius: 18px; font-size: 19px; font-weight: 700; text-decoration: none; margin-bottom: 15px; border: none; width: 100%; }
         .btn-red { background: var(--red); color: white; }
         .btn-green { background: var(--green); color: white; }
-        #msg { font-weight: 800; color: var(--blue); margin-top: 10px; height: 24px; }
-        input[type="time"] { border: 1px solid #ddd; padding: 10px; border-radius: 10px; font-weight: bold; font-size: 18px; }
+        #msg { font-weight: 800; color: var(--blue); margin-top: 10px; }
+        input[type="time"] { border: 1px solid #ddd; padding: 10px; border-radius: 10px; font-size: 18px; }
     </style>
 </head>
 <body>
@@ -41,29 +28,22 @@
     </div>
 
     <div class="timer-card">
-        <div style="font-size: 12px; opacity: 0.8;">自動ロックまで</div>
         <div class="timer-display" id="countdown">00:00:00</div>
-        <div class="settings" style="margin-top:10px;">
-            <input type="time" id="targetTimeInput" onchange="saveTargetTime()">
-        </div>
+        <div style="margin-top:10px;"><input type="time" id="targetTimeInput" onchange="saveTargetTime()"></div>
     </div>
 
     <div class="card">
-        <a id="start-link" href="#" class="btn btn-red">集中モード開始</a>
+        <a href="shortcuts://x-callback-url/run-shortcut?name=ロック開始&x-success=webapp://" class="btn btn-red">集中モード開始</a>
         <button class="btn btn-green" onclick="completeTask()">タスク完了＆解除</button>
         <div id="msg"></div>
     </div>
 
     <div class="card" style="background: #f8f9fa;">
-        <div style="font-size: 13px; color: var(--gray);">今日のクリア回数</div>
-        <div style="font-size: 36px; font-weight: 900; color: var(--bg);" id="count-display">0</div>
+        <div style="font-size: 36px; font-weight: 900;" id="count-display">0</div>
     </div>
 
     <script>
-        // ボタンにショートカットのURLをセット
-        const startLink = document.getElementById('start-link');
-        startLink.href = `shortcuts://x-callback-url/run-shortcut?name=ロック開始&x-success=${encodeURIComponent(MY_URL)}`;
-
+        // 設定の保存と読み込み
         let targetTime = localStorage.getItem('targetTime') || "22:00";
         document.getElementById('targetTimeInput').value = targetTime;
         let count = parseInt(localStorage.getItem('myAppCount')) || 0;
@@ -76,28 +56,19 @@
         }
 
         function completeTask() {
-            // バイブレーション
             if (navigator.vibrate) navigator.vibrate([10, 50, 10]);
-
             count++;
             const today = new Date().toLocaleDateString();
-            if (lastDate !== today) {
-                streak++;
-                lastDate = today;
-            }
-
+            if (lastDate !== today) { streak++; lastDate = today; }
             localStorage.setItem('myAppCount', count);
             localStorage.setItem('myStreak', streak);
             localStorage.setItem('lastCompleteDate', lastDate);
-
-            const praise = ["ナイスバッティング！", "ホームラン級の集中力！", "完璧なリリーフだ！", "三者凡退に抑えたね！"];
-            document.getElementById('msg').innerText = praise[Math.floor(Math.random() * praise.length)];
-
+            document.getElementById('msg').innerText = "ナイスバッティング！";
             updateDisplay();
-
-            // 正確なURLを指定して戻る
+            
+            // 魔法の言葉 webapp:// に戻したよ
             setTimeout(() => {
-                window.location.href = `shortcuts://x-callback-url/run-shortcut?name=ロック解除&x-success=${encodeURIComponent(MY_URL)}`;
+                window.location.href = "shortcuts://x-callback-url/run-shortcut?name=ロック解除&x-success=webapp://";
             }, 500);
         }
 
