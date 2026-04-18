@@ -3,110 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>TaskForce Pro</title>
+    <title>TaskForce Stadium</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     
     <style>
         :root {
-            --bg: #f2f2f7;
+            --bg: #001d42; /* 野球場ナイター風の濃紺 */
             --card: #ffffff;
             --blue: #007aff;
             --red: #ff3b30;
             --green: #34c759;
+            --gold: #ffcc00;
             --text: #1c1c1e;
-            --gray: #8e8e93;
         }
 
-        body { font-family: -apple-system, sans-serif; background-color: var(--bg); margin: 0; padding: 40px 20px; color: var(--text); }
-        .card { background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        body { font-family: -apple-system, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: var(--text); }
         
-        .timer-card { background: #1c1c1e; color: white; border-radius: 20px; padding: 25px 20px; margin-bottom: 20px; text-align: center; }
-        .timer-display { font-size: 48px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
-
-        /* 時刻設定エリア */
-        .settings { margin-top: 15px; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; }
-        .settings label { display: block; font-size: 12px; margin-bottom: 8px; opacity: 0.8; }
-        input[type="time"] { 
-            background: white; border: none; padding: 10px; border-radius: 10px; 
-            font-size: 20px; font-weight: bold; font-family: inherit; margin-bottom: 10px; width: 120px;
+        /* ストリーク（連続記録）表示 */
+        .streak-badge {
+            background: linear-gradient(45deg, #ff9500, #ff5e3a);
+            color: white; border-radius: 50px; padding: 5px 15px;
+            font-size: 14px; font-weight: 800; display: inline-block; margin-bottom: 10px;
         }
 
-        .btn { display: flex; align-items: center; justify-content: center; height: 55px; border-radius: 15px; font-size: 17px; font-weight: 600; text-decoration: none; margin-bottom: 12px; transition: 0.1s; border: none; width: 100%; }
-        .btn:active { transform: scale(0.96); }
+        .timer-card { background: rgba(255,255,255,0.1); color: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; text-align: center; backdrop-filter: blur(10px); }
+        .timer-display { font-size: 40px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+        .card { background: var(--card); border-radius: 24px; padding: 24px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center; }
+
+        .btn { display: flex; align-items: center; justify-content: center; height: 65px; border-radius: 18px; font-size: 19px; font-weight: 700; text-decoration: none; margin-bottom: 15px; transition: 0.1s; border: none; width: 100%; }
+        .btn:active { transform: scale(0.94); }
         .btn-red { background: var(--red); color: white; }
-        .btn-green { background: var(--green); color: white; }
-        .btn-save { background: var(--blue); color: white; height: 45px; font-size: 15px; cursor: pointer; }
+        .btn-green { background: var(--green); color: white; box-shadow: 0 5px 15px rgba(52, 199, 89, 0.4); }
+
+        /* お祝いメッセージ */
+        #msg { font-weight: 800; color: var(--blue); margin-top: 10px; height: 24px; }
+        
+        .settings { margin-top: 15px; font-size: 12px; }
+        input[type="time"] { border: 1px solid #ddd; padding: 5px; border-radius: 8px; font-weight: bold; }
     </style>
 </head>
 <body>
 
+    <div style="text-align: center; margin-top: 20px;">
+        <div id="streak-container" class="streak-badge">🔥 0日連続達成中</div>
+    </div>
+
     <div class="timer-card">
-        <div style="font-size: 14px; opacity: 0.7; margin-bottom: 5px;">自動ロックまで</div>
+        <div style="font-size: 12px; opacity: 0.8;">自動ロックまで</div>
         <div class="timer-display" id="countdown">00:00:00</div>
-        
         <div class="settings">
-            <label>ロックされる時間を設定</label>
-            <input type="time" id="targetTimeInput">
-            <button class="btn btn-save" onclick="saveTargetTime()">設定を保存して連動</button>
+            <input type="time" id="targetTimeInput" onchange="saveTargetTime()">
         </div>
     </div>
 
     <div class="card">
-        <a href="shortcuts://x-callback-url/run-shortcut?name=ロック開始&x-success=webapp://" class="btn btn-red">今すぐロック開始</a>
-        <a href="shortcuts://x-callback-url/run-shortcut?name=ロック解除&x-success=webapp://" class="btn btn-green" onclick="addCount()">タスク完了 & 解除</a>
+        <a href="shortcuts://x-callback-url/run-shortcut?name=ロック開始&x-success=webapp://" class="btn btn-red">集中モード開始</a>
+        <button class="btn btn-green" onclick="completeTask()">タスク完了＆解除</button>
+        <div id="msg"></div>
     </div>
 
-    <div class="card" style="text-align: center;">
-        <span style="color: var(--gray); font-size: 14px;">今日のクリア数</span>
-        <div style="font-size: 32px; font-weight: 800; color: var(--blue);" id="count-display">0</div>
+    <div class="card" style="background: #f8f9fa;">
+        <div style="font-size: 13px; color: #8e8e93;">今日のクリア回数</div>
+        <div style="font-size: 36px; font-weight: 900; color: var(--bg);" id="count-display">0</div>
     </div>
 
     <script>
-        // 保存された「時:分」を読み込む（なければ22:00）
+        // --- 設定と保存 ---
         let targetTime = localStorage.getItem('targetTime') || "22:00";
         document.getElementById('targetTimeInput').value = targetTime;
+        let count = parseInt(localStorage.getItem('myAppCount')) || 0;
+        let streak = parseInt(localStorage.getItem('myStreak')) || 0;
+        let lastDate = localStorage.getItem('lastCompleteDate') || "";
 
         function saveTargetTime() {
-            const t = document.getElementById('targetTimeInput').value;
-            if (t) {
-                targetTime = t;
-                localStorage.setItem('targetTime', t);
-                alert("設定完了！\nショートカットのオートメーションも「" + t + "」に変えておいてね！");
-            }
+            targetTime = document.getElementById('targetTimeInput').value;
+            localStorage.setItem('targetTime', targetTime);
         }
 
-        function updateTimer() {
-            const now = new Date();
-            const [tHour, tMin] = targetTime.split(':');
-            
-            let target = new Date();
-            target.setHours(parseInt(tHour), parseInt(tMin), 0, 0);
+        // --- ストリーク判定ロジック ---
+        function checkStreak() {
+            const today = new Date().toLocaleDateString();
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toLocaleDateString();
 
-            // 設定時間を過ぎていたら翌日に設定
-            if (now > target) {
-                target.setDate(target.getDate() + 1);
+            if (lastDate === today) {
+                // 今日すでにやってる
+            } else if (lastDate === yesterdayStr) {
+                // 昨日やってて今日まだなら維持
+            } else {
+                // 1日以上空いたらリセット
+                if (lastDate !== "") streak = 0;
+            }
+            updateDisplay();
+        }
+
+        // --- メインのアクション ---
+        function completeTask() {
+            // 1. バイブレーション（iPhone専用）
+            if (navigator.vibrate) navigator.vibrate([10, 50, 10]);
+
+            // 2. カウントとストリークの更新
+            count++;
+            const today = new Date().toLocaleDateString();
+            if (lastDate !== today) {
+                streak++;
+                lastDate = today;
             }
 
-            const diff = target - now;
-            const h = Math.floor(diff / 1000 / 60 / 60);
-            const m = Math.floor(diff / 1000 / 60) % 60;
-            const s = Math.floor(diff / 1000) % 60;
+            // 3. データの保存
+            localStorage.setItem('myAppCount', count);
+            localStorage.setItem('myStreak', streak);
+            localStorage.setItem('lastCompleteDate', lastDate);
 
-            document.getElementById('countdown').innerText = 
-                `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            // 4. お祝いメッセージ
+            const praise = ["ナイスバッティング！", "ホームラン級の集中力！", "完璧なリリーフだ！", "三者凡退に抑えたね！"];
+            document.getElementById('msg').innerText = praise[Math.floor(Math.random() * praise.length)];
+
+            updateDisplay();
+
+            // 5. ショートカット実行（ちょっと遅らせて実行するとスムーズ）
+            setTimeout(() => {
+                window.location.href = "shortcuts://x-callback-url/run-shortcut?name=ロック解除&x-success=webapp://";
+            }, 500);
+        }
+
+        function updateDisplay() {
+            document.getElementById('count-display').innerText = count;
+            document.getElementById('streak-container').innerText = `🔥 ${streak}日連続達成中`;
+        }
+
+        // --- タイマー更新 ---
+        function updateTimer() {
+            const now = new Date();
+            const [h, m] = targetTime.split(':');
+            let target = new Date();
+            target.setHours(h, m, 0, 0);
+            if (now > target) target.setDate(target.getDate() + 1);
+            const diff = target - now;
+            const hh = Math.floor(diff / 1000 / 60 / 60).toString().padStart(2, '0');
+            const mm = (Math.floor(diff / 1000 / 60) % 60).toString().padStart(2, '0');
+            const ss = (Math.floor(diff / 1000) % 60).toString().padStart(2, '0');
+            document.getElementById('countdown').innerText = `${hh}:${mm}:${ss}`;
         }
 
         setInterval(updateTimer, 1000);
+        checkStreak();
         updateTimer();
-
-        // クリア数カウント機能
-        let count = parseInt(localStorage.getItem('myAppCount')) || 0;
-        document.getElementById('count-display').innerText = count;
-        function addCount() {
-            count++;
-            localStorage.setItem('myAppCount', count);
-            document.getElementById('count-display').innerText = count;
-        }
     </script>
 </body>
 </html>
