@@ -5,12 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>TaskForce Stadium</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <script>
-        // 君のURLに固定！これで別のPWAに飛ばされるのを防ぐよ
-        const MY_URL = 'https://1998yokobei-lab.github.io/tasuku/'; 
-    </script>
-
     <style>
         :root {
             --bg: #001d42;
@@ -68,8 +64,12 @@
     </div>
 
     <script>
-        // URLをボタンにセット
-        document.getElementById('start-btn').href = `shortcuts://x-callback-url/run-shortcut?name=ロック開始&x-success=${encodeURIComponent(MY_URL)}`;
+        // 【修正のキモ】URLを直書きして「このアプリに戻れ」と強制する
+        const MY_URL = 'https://1998yokobei-lab.github.io/tasuku/';
+        const encodedUrl = encodeURIComponent(MY_URL);
+
+        // 開始ボタンのリンクをセット
+        document.getElementById('start-btn').href = `shortcuts://x-callback-url/run-shortcut?name=ロック開始&x-success=${encodedUrl}`;
 
         let targetTime = localStorage.getItem('targetTime') || "22:00";
         document.getElementById('targetTimeInput').value = targetTime;
@@ -137,9 +137,9 @@
             tasks = [];
             saveTasks();
             
-            // 修正ポイント：戻り先をMY_URLに固定！
+            // 解除ボタンもURLを直指定して戻る
             setTimeout(() => {
-                window.location.href = `shortcuts://x-callback-url/run-shortcut?name=ロック解除&x-success=${encodeURIComponent(MY_URL)}`;
+                window.location.href = `shortcuts://x-callback-url/run-shortcut?name=ロック解除&x-success=${encodedUrl}`;
             }, 500);
         }
 
