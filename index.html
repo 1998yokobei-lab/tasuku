@@ -59,17 +59,14 @@
     </div>
 
     <div class="action-area">
-        <a id="start-btn" href="#" class="btn btn-red">集中モード開始</a>
+        <a id="start-btn" href="#" class="btn btn-red" onclick="startLock()">集中モード開始</a>
         <button id="completeBtn" class="btn btn-green" onclick="completeTask()" disabled>全タスク完了 & 解除</button>
     </div>
 
     <script>
-        // 【修正のキモ】URLを直書きして「このアプリに戻れ」と強制する
+        // 設定
         const MY_URL = 'https://1998yokobei-lab.github.io/tasuku/';
         const encodedUrl = encodeURIComponent(MY_URL);
-
-        // 開始ボタンのリンクをセット
-        document.getElementById('start-btn').href = `shortcuts://x-callback-url/run-shortcut?name=ロック開始&x-success=${encodedUrl}`;
 
         let targetTime = localStorage.getItem('targetTime') || "22:00";
         document.getElementById('targetTimeInput').value = targetTime;
@@ -77,6 +74,22 @@
         let streak = parseInt(localStorage.getItem('myStreak')) || 0;
         let lastDate = localStorage.getItem('lastCompleteDate') || "";
         let tasks = JSON.parse(localStorage.getItem('myTasks')) || [];
+
+        // ★ Safariに飛ばさないための魔法
+        document.addEventListener('click', function(e) {
+            var target = e.target.closest('a');
+            if (target && target.href && target.href.startsWith('http')) {
+                if (target.host === window.location.host) {
+                    e.preventDefault();
+                    window.location.href = target.href;
+                }
+            }
+        }, false);
+
+        function startLock() {
+            // ショートカット呼び出し（Safariに飛ばず、callbackで戻るように指定）
+            window.location.href = `shortcuts://x-callback-url/run-shortcut?name=ロック開始&x-success=${encodedUrl}`;
+        }
 
         function saveTargetTime() {
             targetTime = document.getElementById('targetTimeInput').value;
@@ -137,7 +150,7 @@
             tasks = [];
             saveTasks();
             
-            // 解除ボタンもURLを直指定して戻る
+            // 解除ショートカットを呼び出し
             setTimeout(() => {
                 window.location.href = `shortcuts://x-callback-url/run-shortcut?name=ロック解除&x-success=${encodedUrl}`;
             }, 500);
